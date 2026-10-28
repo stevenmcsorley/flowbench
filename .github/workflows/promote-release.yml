@@ -1,0 +1,41 @@
+name: Promote tested release installers
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag with a draft release
+        required: true
+        type: string
+      native_run:
+        description: Successful Linux and macOS packaging workflow run ID
+        required: true
+        type: string
+      windows_run:
+        description: Successful Windows/application workflow run ID
+        required: true
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: promote-release-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Verify tested sources and promote exact installer artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          NATIVE_RUN: ${{ inputs.native_run }}
+          WINDOWS_RUN: ${{ inputs.windows_run }}
+        run: python scripts/promote_release_artifacts.py --repo "$RELEASE_REPO" --tag "$RELEASE_TAG" --native-run "$NATIVE_RUN" --windows-run "$WINDOWS_RUN"
