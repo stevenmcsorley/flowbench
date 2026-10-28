@@ -87,3 +87,7 @@ The repository contains Flowbench’s independently written application and engi
 - [Example workflows](examples/)
 - [Releases](https://github.com/stevenmcsorley/flowbench/releases)
 - [Issues and product backlog](https://github.com/stevenmcsorley/flowbench/issues)
+
+## Compact MCP discovery
+
+The MCP CLI on Windows, macOS and Linux now defaults to two tools, `search` and `execute`, for on-demand schema discovery and portable batch composition, plus optional sandboxed JavaScript on Linux source builds. Existing native calls and permission gates remain available. Use `--mcp-mode full` for the complete advertised tool list. See [Code Mode setup, examples and limitations](docs/code-mode.md). Reconnect your MCP client after updating.

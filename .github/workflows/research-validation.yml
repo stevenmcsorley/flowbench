@@ -227,6 +227,8 @@ jobs:
       - name: Assemble the pinned bundled Windows runtime
         shell: pwsh
         run: ./desktop/scripts/package_windows_runtime.ps1
+      - name: Verify bundled Windows compact MCP
+        run: python scripts/check_code_mode.py desktop/src-tauri/runtime/python.exe
       - name: First-use language pack installs from the bundled Windows runtime and tags text
         shell: pwsh
         run: |

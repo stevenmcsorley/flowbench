@@ -14,7 +14,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import __version__, agent
+from . import __version__, agent, code_mode
 from .errors import EngineError
 
 PROTOCOL_VERSION = '2025-06-18'
@@ -64,7 +64,9 @@ WORKFLOW_FORMAT = {
 
 
 class Server:
-    def __init__(self, workspace: Path, permissions=()):
+    def __init__(self, workspace: Path, permissions=(), mcp_mode="full"):
+        if mcp_mode not in ("code", "full"): raise ValueError("Invalid MCP mode")
+        self.mcp_mode = mcp_mode
         from .service import EngineService
         self.workspace = Path(workspace).expanduser().resolve()
         self.permissions = set(permissions)
@@ -161,13 +163,15 @@ class Server:
         return {'kind': 'value', 'value': view(value)}
 
     # ------------------------------------------------------------------ protocol
-    def tool_specs(self):
+    def tool_specs(self, full=False):
+        if self.mcp_mode == "code" and not full:
+            return code_mode.tool_specs()
         out = []
         for op in self.ops.values():
             spec = op.spec()
             out.append({'name': spec['name'], 'description': spec['description'], 'inputSchema': spec['inputSchema'],
                         'annotations': spec['annotations'], '_meta': {'flowbench': spec['x-flowbench']}})
-        return out
+        return out if full else out + code_mode.tool_specs()
 
     def handle(self, message: dict):
         method, rid, params = message.get('method'), message.get('id'), message.get('params') or {}
@@ -176,7 +180,7 @@ class Server:
         if method == 'initialize':
             return self._ok(rid, {'protocolVersion': PROTOCOL_VERSION, 'capabilities': {'tools': {'listChanged': False}},
                                   'serverInfo': {'name': 'flowbench', 'version': __version__},
-                                  'instructions': 'Flowbench does the computing. Discover tools with find_tools and describe_tool, '
+                                  'instructions': 'Use search to discover native operations and execute to compose await tools.operation(args); return only needed fields. Native calls remain available. Flowbench does the computing. Discover tools with find_tools and describe_tool, '
                                                   'keep data in Flowbench files and runs, and report results with run_evidence.'})
         if method == 'ping':
             return self._ok(rid, {})
@@ -184,6 +188,22 @@ class Server:
             return self._ok(rid, {'tools': self.tool_specs()})
         if method == 'tools/call':
             name = params.get('name')
+            if name in ('search', 'execute'):
+                try:
+                    arguments = params.get('arguments') or {}
+                    if name == 'search':
+                        value = code_mode.search(self.tool_specs(full=True), arguments)
+                    else:
+                        ctx = agent.Context(self.workspace, self.permissions, self.service.runs, service=self.service)
+                        def invoke(operation, args):
+                            outcome = agent.call_envelope(operation, args, ctx, self.ops)
+                            if not outcome['ok']: raise ValueError(json.dumps(outcome['error']))
+                            return self._bound(operation, outcome['result'])
+                        value = code_mode.execute(self.tool_specs(full=True), arguments, invoke)
+                    return self._ok(rid, {'content':[{'type':'text','text':json.dumps(value, default=str)}],
+                                          'structuredContent':value, 'isError':value.get('ok') is False})
+                except Exception as exc:
+                    return self._ok(rid, {'content':[{'type':'text','text':str(exc)[:4000]}], 'isError':True})
             if name not in self.ops:
                 return self._error(rid, -32602, f'Unknown tool {name!r}')
             ctx = agent.Context(self.workspace, self.permissions, self.service.runs, service=self.service)
@@ -204,9 +224,9 @@ class Server:
         return {'jsonrpc': '2.0', 'id': rid, 'error': {'code': code, 'message': message}}
 
 
-def serve(workspace: Path, permissions=(), stdin=None, stdout=None):
+def serve(workspace: Path, permissions=(), stdin=None, stdout=None, mcp_mode="code"):
     stdin, stdout = stdin or sys.stdin, stdout or sys.stdout
-    server = Server(workspace, permissions)
+    server = Server(workspace, permissions, mcp_mode=mcp_mode)
     for line in stdin:
         line = line.strip()
         if not line:
