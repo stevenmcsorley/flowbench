@@ -1,6 +1,8 @@
 name: Engine, desktop and evidence ledger
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
 jobs:
   r-runtime:

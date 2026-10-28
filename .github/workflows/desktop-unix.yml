@@ -1,6 +1,8 @@
 name: Linux and macOS desktop packages
 on:
   push:
+    branches: [main]
+    tags: ['v*']
   pull_request:
 jobs:
   native-desktop:

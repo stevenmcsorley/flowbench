@@ -180,7 +180,7 @@ class Server:
         if method == 'initialize':
             return self._ok(rid, {'protocolVersion': PROTOCOL_VERSION, 'capabilities': {'tools': {'listChanged': False}},
                                   'serverInfo': {'name': 'flowbench', 'version': __version__},
-                                  'instructions': 'Use search to discover native operations and execute to compose await tools.operation(args); return only needed fields. Native calls remain available. Flowbench does the computing. Discover tools with find_tools and describe_tool, '
+                                  'instructions': 'Use search to discover native operations. Prefer execute calls:[{name,args,select?}] for portable batches; optional Linux source JavaScript supports await tools.operation(args). Return only needed fields. Native calls remain available. Flowbench does the computing. Discover tools with find_tools and describe_tool, '
                                                   'keep data in Flowbench files and runs, and report results with run_evidence.'})
         if method == 'ping':
             return self._ok(rid, {})
