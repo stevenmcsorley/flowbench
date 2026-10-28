@@ -154,7 +154,7 @@ class McpTests(AgentCase):
             {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/call', 'params': {'name': 'download_file', 'arguments': {'url': 'http://127.0.0.1:9/x.csv'}}},
         ]
         root = Path(__file__).resolve().parents[1]
-        proc = subprocess.run([sys.executable, '-m', 'flowengine', 'mcp', '--workspace', str(self.dir)], cwd=root,
+        proc = subprocess.run([sys.executable, '-m', 'flowengine', 'mcp', '--mcp-mode', 'full', '--workspace', str(self.dir)], cwd=root,
                               input='\n'.join(json.dumps(m) for m in messages) + '\n', capture_output=True, text=True, timeout=120)
         replies = {r['id']: r for r in map(json.loads, proc.stdout.splitlines())}
         self.assertEqual(sorted(replies), [1, 2, 3, 4])
