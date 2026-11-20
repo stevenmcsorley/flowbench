@@ -14,6 +14,9 @@ Flowbench is a cross-platform desktop application for importing data, connecting
 - **Work with real data:** read and write common file formats, connect to PostgreSQL and SQL Server, and inspect schemas and bounded previews.
 - **Run and troubleshoot:** validate a workflow, execute or cancel it, inspect node results and diagnostics, review performance and reopen prior runs.
 - **Inspect and export results:** view rows and field types in the results grid, then export complete outputs as CSV or typed Parquet.
+- **Create shareable reports:** export a selected run output as a styled, paginated HTML or PDF report with its schema and a clearly labelled first-page row sample; use CSV or Parquet for the complete dataset.
+- **Organise and debug workflows:** auto-layout connected tools by dependency depth, inspect field types and output schemas, and jump from execution errors to the affected node. Layout changes support undo.
+- **Open more source data:** import legacy `.xls` workbooks and GeoJSON Feature collections alongside CSV, modern Excel, ODS, JSON, JSON Lines, Parquet and Arrow. GeoJSON properties retain inferred value types and geometry is available to Spatial tools.
 - **Use Flowbench AI:** connect ChatGPT or a supported local model. The assistant can discover installed tools, inspect workflow context, propose or apply workflow changes according to the selected permission mode, execute workflows, inspect actual results, and help recover from errors.
 - **Reuse existing work:** save native `.flow.json` workflows and import supported `.yxmd`, `.yxmc`, `.yxwz` and `.yxzp` documents. Import reports identify unsupported settings instead of silently treating them as equivalent.
 - **Extend analysis:** use the available macro runtimes, reporting, spatial, statistical, predictive, machine-learning and connector tools where their dependencies and configurations are supported.
@@ -49,6 +52,10 @@ The AI uses Flowbench’s installed tool descriptions and the same workflow edit
 
 See [Flowbench AI usage and permissions](docs/FLOWBENCH_AI.md) for provider setup, workspace behavior, supported operations and privacy details.
 
+See the [Workflow, data and reporting guide](docs/WORKFLOW_REPORTS_GUIDE.md) for step-by-step examples of these workflows and exports.
+
+See the [1.0.0-rc.4 release notes](docs/RELEASE_NOTES_1.0.0-rc.4.md) for this release's changes and limits.
+
 ## Build from source
 
 Development prerequisites: Python 3.12, Node.js 22, Rust stable and WebView2 on Windows. Platform-specific native libraries for Linux/macOS are listed in [the desktop build guide](docs/DESKTOP.md) and [cross-platform packaging notes](docs/CROSS_PLATFORM_UPDATE.md).
@@ -80,3 +87,7 @@ The repository contains Flowbench’s independently written application and engi
 - [Example workflows](examples/)
 - [Releases](https://github.com/stevenmcsorley/flowbench/releases)
 - [Issues and product backlog](https://github.com/stevenmcsorley/flowbench/issues)
+
+## Compact MCP discovery
+
+The MCP CLI on Windows, macOS and Linux now defaults to two tools, `search` and `execute`, for on-demand schema discovery and portable batch composition, plus optional sandboxed JavaScript on Linux source builds. Existing native calls and permission gates remain available. Use `--mcp-mode full` for the complete advertised tool list. See [Code Mode setup, examples and limitations](docs/code-mode.md). Reconnect your MCP client after updating.

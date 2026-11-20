@@ -111,6 +111,7 @@ def main(argv=None) -> int:
     sv.add_argument('--http', type=int, metavar='PORT', help='Serve over loopback HTTP + SSE instead of stdio')
     sv.add_argument('--history', type=Path, help='SQLite run-history database')
     mc = sub.add_parser('mcp', help='Model Context Protocol server (stdio) over the Flowbench tools')
+    mc.add_argument('--mcp-mode', choices=('code','full'), default='code', help='Compact search/execute discovery (default) or all native schemas')
     mc.add_argument('--workspace', type=Path, default=Path('.'), help='Folder the AI may read and write (default: current)')
     mc.add_argument('--searxng', help='SearXNG address for web_search, e.g. http://localhost:8888')
     mc.add_argument('--allow', default='', help='Comma-separated permissions: network,file_writes,processes,database_writes,remote_writes')
@@ -157,7 +158,7 @@ def main(argv=None) -> int:
                 return 2
             if args.searxng:
                 os.environ['FLOWBENCH_SEARXNG_URL'] = args.searxng
-            serve_mcp(args.workspace, granted)
+            serve_mcp(args.workspace, granted, mcp_mode=args.mcp_mode)
             return 0
         if args.cmd == 'import':
             from .interop.yxmd import import_file

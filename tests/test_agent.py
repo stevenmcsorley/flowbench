@@ -20,7 +20,7 @@ class AgentCase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.dir = Path(self.tmp.name)
-        (self.dir / 'sales.csv').write_text(CSV)
+        (self.dir / 'sales.csv').write_bytes(CSV.encode('utf-8'))
         self.service = EngineService()
 
     def tearDown(self):
@@ -111,7 +111,7 @@ class DownloadTests(AgentCase):
     def test_download_needs_permission_and_records_provenance(self):
         served = self.dir / 'site'
         served.mkdir()
-        (served / 'fuel.csv').write_text('week,price\n1,140.2\n')
+        (served / 'fuel.csv').write_bytes(b'week,price\n1,140.2\n')
         server = ThreadingHTTPServer(('127.0.0.1', 0), partial(_Quiet, directory=str(served)))
         threading.Thread(target=server.serve_forever, daemon=True).start()
         url = f'http://127.0.0.1:{server.server_address[1]}/fuel.csv'
@@ -154,7 +154,7 @@ class McpTests(AgentCase):
             {'jsonrpc': '2.0', 'id': 4, 'method': 'tools/call', 'params': {'name': 'download_file', 'arguments': {'url': 'http://127.0.0.1:9/x.csv'}}},
         ]
         root = Path(__file__).resolve().parents[1]
-        proc = subprocess.run([sys.executable, '-m', 'flowengine', 'mcp', '--workspace', str(self.dir)], cwd=root,
+        proc = subprocess.run([sys.executable, '-m', 'flowengine', 'mcp', '--mcp-mode', 'full', '--workspace', str(self.dir)], cwd=root,
                               input='\n'.join(json.dumps(m) for m in messages) + '\n', capture_output=True, text=True, timeout=120)
         replies = {r['id']: r for r in map(json.loads, proc.stdout.splitlines())}
         self.assertEqual(sorted(replies), [1, 2, 3, 4])
